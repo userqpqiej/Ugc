@@ -1,5 +1,5 @@
 -- Oxireun UI Library - Slow RGB Border, Purple Theme
--- Kompakt versiyon - Remote Logger Detection (Normal GUIs Protected)
+-- Remote Logger Detection FIXED - Only closes spy tools
 
 local OxireunUI = {}
 OxireunUI.__index = OxireunUI
@@ -94,7 +94,6 @@ function OxireunUI:NewWindow(title)
     Window.CurrentSection = nil
     Window.ActiveConnections = {} 
     Window.AllToggles = {} 
-    Window.IsOxireunUI = true
   
     -- Ana ekran  
     local ScreenGui = Instance.new("ScreenGui")  
@@ -814,111 +813,89 @@ function OxireunUI:NewWindow(title)
     end  
   
     -- =========================================================================
-    -- REMOTE LOGGER DETECTION SYSTEM (GÜVENLI VE TEK KONTROL)
+    -- REMOTE LOGGER DETECTION - SADECE SPY TOOLLARINI KAPATIR
     -- =========================================================================
     local CoreGui = game:GetService("CoreGui")
     local PlayerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
     
-    -- Remote Logger aracını tanıyan sistem
-    local RemoteLoggerSignatures = {
-        -- Çok sayıda RemoteFunction/RemoteEvent
-        hasRemoteMonitoring = function(obj)
-            if not obj:IsA("ScreenGui") then return false end
-            local labelCount = 0
-            local hasRemoteInfo = false
-            
-            for _, desc in pairs(obj:GetDescendants()) do
-                if desc:IsA("TextLabel") or desc:IsA("TextBox") then
-                    local txt = desc.Text:lower() .. desc.Name:lower()
-                    if string.find(txt, "remotefunction") or string.find(txt, "remoteevent") or
-                       string.find(txt, "arguments") or string.find(txt, "transmitted") or
-                       string.find(txt, "replicated") then
-                        hasRemoteInfo = true
-                        labelCount = labelCount + 1
-                    end
-                end
-            end
-            
-            return hasRemoteInfo and labelCount >= 2
-        end,
-        
-        -- Özel spy aracı özellikleri
-        hasSpyFeatures = function(obj)
-            if not obj:IsA("ScreenGui") then return false end
-            local hasLogList = false
-            local hasDetailPanel = false
-            
-            for _, child in pairs(obj:GetDescendants()) do
-                if child:IsA("Frame") or child:IsA("ScrollingFrame") then
-                    if child.Size.X.Scale > 0.3 or child.Size.Y.Scale > 0.3 then
-                        hasLogList = true
-                    end
-                end
-                if child:IsA("TextLabel") then
-                    local txt = child.Text:lower()
-                    if string.find(txt, "monitor") or string.find(txt, "trace") or
-                       string.find(txt, "capture") or string.find(txt, "inspect") then
-                        hasDetailPanel = true
-                    end
-                end
-            end
-            
-            return hasLogList and hasDetailPanel
-        end,
-        
-        -- Spesifik isim kontrolleri
-        hasSpyName = function(obj)
-            if not obj:IsA("ScreenGui") then return false end
-            local name = obj.Name:lower()
-            local blacklist = {"remotespy", "simplespy", "hydroxide", "turtlespy", "darkdex", "spy", "logger", "monitor", "debugger", "tracer"}
-            for _, badName in pairs(blacklist) do
-                if string.find(name, badName) then return true end
-            end
-            return false
-        end
+    -- Known Remote Logger Tools (Specific Identification)
+    local KnownSpyTools = {
+        "RemoteSpy",
+        "SimpleSpy", 
+        "Hydroxide",
+        "TurtleSpy",
+        "DarkDex",
+        "Dex",
+        "ExtremeDex",
+        "ProSpy",
+        "RemoteLogger"
     }
     
-    -- Kontrol fonksiyonu
-    local function IsRemoteLogger(obj)
-        -- Oxireun UI'ı koru
-        if obj:IsA("ScreenGui") and obj.Name == "OxireunUI" then
-            return false
-        end
-        
-        return RemoteLoggerSignatures.hasRemoteMonitoring(obj) or 
-               RemoteLoggerSignatures.hasSpyFeatures(obj) or
-               RemoteLoggerSignatures.hasSpyName(obj)
-    end
-    
-    -- İlk tarama (Sadece remote logger'lar)
-    for _, v in pairs(CoreGui:GetChildren()) do 
-        if IsRemoteLogger(v) then
-            pcall(function() v:Destroy() end)
-            OxireunUI:SendNotification("🛡️ Security", "Remote Logger blocked!", 2)
+    -- İlk tarama - Mevcut GUI'leri kontrol et
+    for _, v in pairs(CoreGui:GetChildren()) do
+        if v:IsA("ScreenGui") then
+            local isSpyTool = false
+            for _, spyName in pairs(KnownSpyTools) do
+                if string.find(v.Name, spyName) then
+                    isSpyTool = true
+                    break
+                end
+            end
+            if isSpyTool and v.Name ~= "OxireunUI" then
+                pcall(function() v:Destroy() end)
+                OxireunUI:SendNotification("Nope", "Remote Logger Closed", 2)
+            end
         end
     end
     
-    for _, v in pairs(PlayerGui:GetChildren()) do 
-        if IsRemoteLogger(v) then
-            pcall(function() v:Destroy() end)
-            OxireunUI:SendNotification("🛡️ Security", "Remote Logger blocked!", 2)
+    for _, v in pairs(PlayerGui:GetChildren()) do
+        if v:IsA("ScreenGui") then
+            local isSpyTool = false
+            for _, spyName in pairs(KnownSpyTools) do
+                if string.find(v.Name, spyName) then
+                    isSpyTool = true
+                    break
+                end
+            end
+            if isSpyTool and v.Name ~= "OxireunUI" then
+                pcall(function() v:Destroy() end)
+                OxireunUI:SendNotification("Nope", "Remote Logger Closed", 2)
+            end
         end
     end
 
-    -- Sürekli monitorlama (Yeni GUI'ler eklendi)
+    -- Yeni eklenen GUI'leri monitorla
     local c1 = CoreGui.ChildAdded:Connect(function(child)
-        task.wait(0.1) -- Kurulumun bitmesi için bekle
-        if IsRemoteLogger(child) then
-            pcall(function() child:Destroy() end)
-            OxireunUI:SendNotification("🛡️ Security", "Remote Logger blocked!", 2)
+        if child:IsA("ScreenGui") then
+            local isSpyTool = false
+            for _, spyName in pairs(KnownSpyTools) do
+                if string.find(child.Name, spyName) then
+                    isSpyTool = true
+                    break
+                end
+            end
+            if isSpyTool and child.Name ~= "OxireunUI" then
+                task.wait(0.1)
+                pcall(function() child:Destroy() end)
+                OxireunUI:SendNotification("Nope", "Remote Logger Closed", 2)
+            end
         end
     end)
     
     local c2 = PlayerGui.ChildAdded:Connect(function(child)
-        task.wait(0.1)
-        if IsRemoteLogger(child) then
-            pcall(function() child:Destroy() end)
-            OxireunUI:SendNotification("🛡️ Security", "Remote Logger blocked!", 2)
+        if child:IsA("ScreenGui") then
+            local isSpyTool = false
+            for _, spyName in pairs(KnownSpyTools) do
+                if string.find(child.Name, spyName) then
+                    isSpyTool = true
+                    break
+                end
+            end
+            if isSpyTool and child.Name ~= "OxireunUI" then
+                task.wait(0.1)
+                pcall(function() child:Destroy() end)
+                OxireunUI:SendNotification("Nope", "Remote Logger Closed", 2)
+            end
         end
     end)
     

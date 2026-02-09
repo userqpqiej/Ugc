@@ -1,9 +1,11 @@
--- Oxireun UI Library - Anti-Remote Spy System (Fixed Version)
--- Özelliklere göre Remote Spy araçlarını otomatik algılayıp kapatan sistem
+-- Oxireun UI Library - Slow RGB Border, Purple Theme
+-- Kompakt versiyon - Daha küçük boyutlar
+-- Anti-Remote Spy System FIXED (Automatic Detection & Closure)
 
 local OxireunUI = {}
 OxireunUI.__index = OxireunUI
 
+-- Mor temalı renk paleti
 local Colors = {
     Background = Color3.fromRGB(30, 20, 50),
     SecondaryBg = Color3.fromRGB(40, 30, 70),
@@ -23,6 +25,7 @@ local Colors = {
     CloseButton = Color3.fromRGB(180, 60, 60)
 }
 
+-- RGB renkleri (YAVAŞ animasyon için)
 local RGBColors = {
     Color3.fromRGB(180, 50, 220),
     Color3.fromRGB(150, 50, 200),
@@ -32,6 +35,7 @@ local RGBColors = {
     Color3.fromRGB(160, 30, 190)
 }
 
+-- Font ayarları
 local Fonts = {
     Title = Enum.Font.SciFi,
     Normal = Enum.Font.Gotham,
@@ -40,11 +44,13 @@ local Fonts = {
     Bold = Enum.Font.GothamBold
 }
 
+-- KOMPAKT UI BOYUTLARI
 local UI_SIZE = {
     Width = 260,
     Height = 280
 }
 
+-- Element boyutları
 local ELEMENT_SIZES = {
     TitleBar = 30,
     TabHeight = 25,
@@ -56,6 +62,7 @@ local ELEMENT_SIZES = {
     SectionSpacing = 6
 }
 
+-- NOTIFICATION SİSTEMİ
 function OxireunUI:SendNotification(title, text, duration)
     game.StarterGui:SetCore("SendNotification", {
         Title = title or "Oxireun UI";
@@ -64,13 +71,16 @@ function OxireunUI:SendNotification(title, text, duration)
     })
 end
 
+-- Ana Library fonksiyonu
 function OxireunUI.new()
     local self = setmetatable({}, OxireunUI)
     self.Windows = {}
     return self
 end
 
+-- Yeni pencere oluşturma
 function OxireunUI:NewWindow(title)
+    -- Önce eski UI'ı temizle
     if game.CoreGui:FindFirstChild("OxireunUI") then
         game.CoreGui:FindFirstChild("OxireunUI"):Destroy()
     end
@@ -85,12 +95,15 @@ function OxireunUI:NewWindow(title)
     Window.CurrentSection = nil
     Window.ActiveConnections = {} 
     Window.AllToggles = {} 
+    Window.SpyDetected = false
   
+    -- Ana ekran  
     local ScreenGui = Instance.new("ScreenGui")  
     ScreenGui.Name = "OxireunUI"  
     ScreenGui.ResetOnSpawn = false  
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling  
   
+    -- Ana pencere  
     local MainFrame = Instance.new("Frame")  
     MainFrame.Name = "MainWindow"  
     MainFrame.Size = UDim2.new(0, UI_SIZE.Width, 0, UI_SIZE.Height)  
@@ -105,6 +118,7 @@ function OxireunUI:NewWindow(title)
     corner.CornerRadius = UDim.new(0, 8)  
     corner.Parent = MainFrame  
   
+    -- YAVAŞ ANİMASYONLU RGB BORDER  
     local rgbBorder = Instance.new("UIStroke")  
     rgbBorder.Name = "RGBBorder"  
     rgbBorder.Color = RGBColors[1]  
@@ -112,6 +126,7 @@ function OxireunUI:NewWindow(title)
     rgbBorder.Transparency = 0  
     rgbBorder.Parent = MainFrame  
   
+    -- YAVAŞ RGB animasyonu  
     local colorIndex = 1  
     local rgbConnection  
     rgbConnection = game:GetService("RunService").Heartbeat:Connect(function()  
@@ -126,6 +141,7 @@ function OxireunUI:NewWindow(title)
     end)
     table.insert(Window.ActiveConnections, rgbConnection)
   
+    -- Başlık çubuğu  
     local TitleBar = Instance.new("Frame")  
     TitleBar.Name = "TitleBar"  
     TitleBar.Size = UDim2.new(1, 0, 0, ELEMENT_SIZES.TitleBar)  
@@ -137,6 +153,7 @@ function OxireunUI:NewWindow(title)
     titleCorner.CornerRadius = UDim.new(0, 8, 0, 0)  
     titleCorner.Parent = TitleBar  
   
+    -- Başlık  
     local TitleLabel = Instance.new("TextLabel")  
     TitleLabel.Name = "Title"  
     TitleLabel.Size = UDim2.new(0.6, 0, 1, 0)  
@@ -149,6 +166,7 @@ function OxireunUI:NewWindow(title)
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left  
     TitleLabel.Parent = TitleBar  
   
+    -- Kontrol butonları  
     local Controls = Instance.new("Frame")  
     Controls.Name = "Controls"  
     Controls.Size = UDim2.new(0, 40, 1, 0)  
@@ -156,6 +174,7 @@ function OxireunUI:NewWindow(title)
     Controls.BackgroundTransparency = 1  
     Controls.Parent = TitleBar  
   
+    -- Küçültme butonu  
     local MinimizeButton = Instance.new("TextButton")  
     MinimizeButton.Name = "Minimize"  
     MinimizeButton.Size = UDim2.new(0, 18, 0, 18)  
@@ -172,6 +191,7 @@ function OxireunUI:NewWindow(title)
     minimizeCorner.CornerRadius = UDim.new(1, 0)  
     minimizeCorner.Parent = MinimizeButton  
   
+    -- Kapatma butonu  
     local CloseButton = Instance.new("TextButton")  
     CloseButton.Name = "Close"  
     CloseButton.Size = UDim2.new(0, 18, 0, 18)  
@@ -188,6 +208,7 @@ function OxireunUI:NewWindow(title)
     closeCorner.CornerRadius = UDim.new(1, 0)  
     closeCorner.Parent = CloseButton  
   
+    -- Tab'ler  
     local TabsScrollFrame = Instance.new("ScrollingFrame")  
     TabsScrollFrame.Name = "TabsScroll"  
     TabsScrollFrame.Size = UDim2.new(1, -16, 0, ELEMENT_SIZES.TabHeight)  
@@ -212,6 +233,7 @@ function OxireunUI:NewWindow(title)
     TabsList.SortOrder = Enum.SortOrder.LayoutOrder  
     TabsList.Parent = TabsContainer  
   
+    -- İçerik alanı  
     local ContentArea = Instance.new("Frame")  
     ContentArea.Name = "ContentArea"  
     ContentArea.Size = UDim2.new(1, -16, 1, - (ELEMENT_SIZES.TitleBar + ELEMENT_SIZES.TabHeight + 15))  
@@ -220,6 +242,7 @@ function OxireunUI:NewWindow(title)
     ContentArea.ClipsDescendants = true  
     ContentArea.Parent = MainFrame  
   
+    -- EFEKTLER  
     local function CreateClickEffect(button)  
         local effect = Instance.new("Frame")  
         effect.Name = "ClickEffect"  
@@ -268,11 +291,12 @@ function OxireunUI:NewWindow(title)
     SetupButtonHover(CloseButton, true)  
     SetupButtonHover(MinimizeButton, true)  
   
+    -- DRAGGABLE  
     local UserInputService = game:GetService("UserInputService")  
     local RunService = game:GetService("RunService")  
     local dragging = false  
     local dragStart, startPos  
-    local activeDropdowns = {}  
+    local activeDropdowns = {}
     
     local function update(input)  
         if not dragging then return end  
@@ -310,6 +334,9 @@ function OxireunUI:NewWindow(title)
         end  
     end)  
   
+    -- =========================================================================
+    -- TAM TEMİZLİK FONKSİYONU (UI KAPANDIĞINDA ÇALIŞIR)
+    -- =========================================================================
     local function FullCleanup()
         for _, conn in pairs(Window.ActiveConnections) do
             if conn then conn:Disconnect() end
@@ -333,11 +360,13 @@ function OxireunUI:NewWindow(title)
         end
     end
 
+    -- Close Button Logic
     CloseButton.MouseButton1Click:Connect(function()  
         CreateClickEffect(CloseButton)  
         ScreenGui:Destroy()
     end)  
     
+    -- UI Silindiğinde Temizlik Yap
     ScreenGui.AncestryChanged:Connect(function()
         if not ScreenGui.Parent then
             FullCleanup()
@@ -786,87 +815,96 @@ function OxireunUI:NewWindow(title)
     end  
   
     -- =========================================================================
-    -- ANTI-REMOTE SPY SYSTEM - ÖZELLİKLERE GÖRE OTOMATIK ALGISALAMA
+    -- OTOMATIK REMOTE LOGGER ALGILAMA VE KAPATMA SİSTEMİ
     -- =========================================================================
     local CoreGui = game:GetService("CoreGui")
     local PlayerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-    local NotificationSent = false
     
-    -- Remote Spy araçlarının ortak karakteristikleri
-    local function IsRemoteSpy(obj)
-        if not obj or obj.Name == "OxireunUI" then return false end
+    -- Remote logger'ı algılayacak öznitelikler
+    local function IsRemoteLogger(obj)
+        if not obj or not obj:IsA("ScreenGui") then return false end
         
-        -- 1. Çok sayıda RemoteEvent/RemoteFunction içeriyor
-        local remoteCount = 0
-        for _, child in pairs(obj:GetDescendants()) do
-            if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") then
-                remoteCount = remoteCount + 1
+        -- Recursive olarak tüm frame'leri kontrol et
+        local function CheckFrames(parent)
+            for _, child in pairs(parent:GetDescendants()) do
+                if child:IsA("Frame") or child:IsA("ScrollingFrame") or child:IsA("TextLabel") then
+                    local name = child.Name:lower()
+                    
+                    -- Remote logger'ların tipik öznitelikleri:
+                    -- 1. Çok sayıda child element
+                    -- 2. TextLabel'lar ile remote/event bilgisi
+                    -- 3. Spesifik isimlendirme (RemoteSpy, SimpleSpy, vb.)
+                    
+                    if child:IsA("TextLabel") then
+                        local text = child.Text:lower()
+                        if string.find(text, "remote") or string.find(text, "event") or 
+                           string.find(text, "function") or string.find(text, "arguments") then
+                            return true
+                        end
+                    end
+                    
+                    -- Isim kontrolleri
+                    if string.find(name, "remote") or string.find(name, "spy") or 
+                       string.find(name, "logger") or string.find(name, "debugger") or
+                       string.find(name, "monitor") then
+                        return true
+                    end
+                end
             end
+            return false
         end
         
-        -- 2. Deep nesting yapısı var (Normal UI'da bu kadar deep nesting olmaz)
-        local maxDepth = 0
-        local function getDepth(parent, depth)
-            depth = depth or 0
-            maxDepth = math.max(maxDepth, depth)
-            for _, child in pairs(parent:GetChildren()) do
-                getDepth(child, depth + 1)
-            end
-        end
-        getDepth(obj)
-        
-        -- 3. GUI elementi ama hiç görünür element yok
-        local hasVisibleElements = false
-        for _, child in pairs(obj:GetDescendants()) do
-            if child:IsA("GuiObject") and child.Visible then
-                hasVisibleElements = true
-                break
-            end
-        end
-        
-        -- 4. Spy araçlarının tipik yapısı: Çok sayıda RemoteEvent + Deep nesting + Görünmez
-        if remoteCount >= 5 and maxDepth >= 8 and not hasVisibleElements then
-            return true
-        end
-        
-        -- 5. Alternatif: Çok sayıda event listener + ScreenGui kombinasyonu
-        local eventListenerCount = 0
-        for _, child in pairs(obj:GetDescendants()) do
-            if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") or child:IsA("BindableEvent") then
-                eventListenerCount = eventListenerCount + 1
-            end
-        end
-        
-        if eventListenerCount >= 10 and maxDepth >= 6 then
-            return true
-        end
-        
-        return false
+        return CheckFrames(obj)
     end
 
-    local function CheckAndKill(obj)
-        if not obj or IsRemoteSpy(obj) == false then return end
-        
-        pcall(function()
-            obj:Destroy()
-            -- SADECE BİR KERE bildirim gönder
-            if not NotificationSent then
-                NotificationSent = true
-                OxireunUI:SendNotification("Security System", "Remote Spy detected & closed!", 3)
+    -- İlk tarama
+    for _, v in pairs(CoreGui:GetChildren()) do 
+        if IsRemoteLogger(v) then
+            pcall(function() v:Destroy() end)
+            if not Window.SpyDetected then
+                OxireunUI:SendNotification("Security System", "🔒 Remote Logger Detected & Closed!", 4)
+                Window.SpyDetected = true
             end
-        end)
+        end
+    end
+    
+    for _, v in pairs(PlayerGui:GetChildren()) do 
+        if IsRemoteLogger(v) then
+            pcall(function() v:Destroy() end)
+            if not Window.SpyDetected then
+                OxireunUI:SendNotification("Security System", "🔒 Remote Logger Detected & Closed!", 4)
+                Window.SpyDetected = true
+            end
+        end
     end
 
-    -- Mevcut olanları kontrol et
-    for _, v in pairs(CoreGui:GetChildren()) do CheckAndKill(v) end
-    for _, v in pairs(PlayerGui:GetChildren()) do CheckAndKill(v) end
-
-    -- Yeni eklenenler için izle
-    local c1 = CoreGui.ChildAdded:Connect(CheckAndKill)
-    local c2 = PlayerGui.ChildAdded:Connect(CheckAndKill)
+    -- Sürekli monitorlama
+    local c1 = CoreGui.ChildAdded:Connect(function(child)
+        if IsRemoteLogger(child) then
+            pcall(function() child:Destroy() end)
+            if not Window.SpyDetected then
+                OxireunUI:SendNotification("Security System", "🔒 Remote Logger Detected & Closed!", 4)
+                Window.SpyDetected = true
+            end
+            task.wait(2) -- Tekrar olmasını önle
+            Window.SpyDetected = false
+        end
+    end)
+    
+    local c2 = PlayerGui.ChildAdded:Connect(function(child)
+        if IsRemoteLogger(child) then
+            pcall(function() child:Destroy() end)
+            if not Window.SpyDetected then
+                OxireunUI:SendNotification("Security System", "🔒 Remote Logger Detected & Closed!", 4)
+                Window.SpyDetected = true
+            end
+            task.wait(2)
+            Window.SpyDetected = false
+        end
+    end)
+    
     table.insert(Window.ActiveConnections, c1)
     table.insert(Window.ActiveConnections, c2)
-    -- =========================================================================
     
     ScreenGui.Parent = game:GetService("CoreGui") or game.Players.LocalPlayer:WaitForChild("PlayerGui")  
     table.insert(self.Windows, Window)  

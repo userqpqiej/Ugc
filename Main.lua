@@ -1,5 +1,5 @@
 -- Oxireun UI Library - Slow RGB Border, Purple Theme
--- Anti-Remote Logger System (Notification ONLY on startup + Game GUI protection)
+-- Kompakt versiyon - Remote Logger Detection (Normal GUIs Protected)
 
 local OxireunUI = {}
 OxireunUI.__index = OxireunUI
@@ -94,6 +94,8 @@ function OxireunUI:NewWindow(title)
     Window.CurrentSection = nil
     Window.ActiveConnections = {} 
     Window.AllToggles = {} 
+    Window.IsOxireunUI = true
+    Window.DetectedGUIs = {}
   
     -- Ana ekran  
     local ScreenGui = Instance.new("ScreenGui")  
@@ -333,7 +335,7 @@ function OxireunUI:NewWindow(title)
     end)  
   
     -- =========================================================================
-    -- TAM TEMİZLİK FONKSİYONU (UI KAPANDIĞINDA ÇALIŞIR)
+    -- TAM TEMİZLİK FONKSİYONU
     -- =========================================================================
     local function FullCleanup()
         for _, conn in pairs(Window.ActiveConnections) do
@@ -813,56 +815,140 @@ function OxireunUI:NewWindow(title)
     end  
   
     -- =========================================================================
-    -- ANTI-REMOTE LOGGER SYSTEM - ONLY AT STARTUP
+    -- REMOTE LOGGER DETECTION SYSTEM (ROBLOX BUTTONS PROTECTED)
     -- =========================================================================
     local CoreGui = game:GetService("CoreGui")
     local PlayerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-    local startupChecked = false
     
-    local function IsRemoteLoggerGUI(obj)
-        if not obj or not obj:IsA("ScreenGui") then return false end
-        if obj.Name == "OxireunUI" then return false end
-        
-        local descendantCount = 0
-        local hasRemoteInfo = false
-        
-        for _, child in pairs(obj:GetDescendants()) do
-            descendantCount = descendantCount + 1
-            
-            if child:IsA("TextLabel") then
-                local text = child.Text:lower()
-                if string.find(text, "remote") or string.find(text, "invoke") or 
-                   string.find(text, "fireserver") then
-                    hasRemoteInfo = true
-                end
+    -- Roblox'un kendi GUI'leri (Dokunulmayacaklar)
+    local RobloxGUIs = {
+        "TopbarGui", "Chat", "BubbleChat", "PlayerList", "RobloxGui", "InspectGui",
+        "NotificationGui", "FriendPrompts", "MenuGui", "ExperienceMenuGui", "EmotesGui"
+    }
+    
+    local function IsRobloxGUI(obj)
+        if not obj:IsA("ScreenGui") then return false end
+        for _, guiName in pairs(RobloxGUIs) do
+            if obj.Name == guiName or string.find(obj.Name, guiName) then
+                return true
             end
         end
-        
-        return descendantCount > 50 and hasRemoteInfo
+        return false
     end
-
-    -- Startup check ONLY
-    task.spawn(function()
-        if not startupChecked then
-            startupChecked = true
+    
+    -- Remote Logger aracını tanıyan sistem
+    local RemoteLoggerSignatures = {
+        hasRemoteMonitoring = function(obj)
+            if not obj:IsA("ScreenGui") or IsRobloxGUI(obj) then return false end
+            local labelCount = 0
+            local hasRemoteInfo = false
             
-            for _, v in pairs(CoreGui:GetChildren()) do 
-                if IsRemoteLoggerGUI(v) then
-                    pcall(function() v:Destroy() end)
-                    OxireunUI:SendNotification("🔒 Security", "Remote Logger Detected & Closed!", 3)
-                    return
+            for _, desc in pairs(obj:GetDescendants()) do
+                if desc:IsA("TextLabel") or desc:IsA("TextBox") then
+                    local txt = desc.Text:lower() .. desc.Name:lower()
+                    if string.find(txt, "remotefunction") or string.find(txt, "remoteevent") or
+                       string.find(txt, "arguments") or string.find(txt, "transmitted") or
+                       string.find(txt, "replicated") then
+                        hasRemoteInfo = true
+                        labelCount = labelCount + 1
+                    end
                 end
             end
             
-            for _, v in pairs(PlayerGui:GetChildren()) do 
-                if IsRemoteLoggerGUI(v) then
-                    pcall(function() v:Destroy() end)
-                    OxireunUI:SendNotification("🔒 Security", "Remote Logger Detected & Closed!", 3)
-                    return
+            return hasRemoteInfo and labelCount >= 2
+        end,
+        
+        hasSpyFeatures = function(obj)
+            if not obj:IsA("ScreenGui") or IsRobloxGUI(obj) then return false end
+            local hasLogList = false
+            local hasDetailPanel = false
+            
+            for _, child in pairs(obj:GetDescendants()) do
+                if child:IsA("Frame") or child:IsA("ScrollingFrame") then
+                    if child.Size.X.Scale > 0.3 or child.Size.Y.Scale > 0.3 then
+                        hasLogList = true
+                    end
                 end
+                if child:IsA("TextLabel") then
+                    local txt = child.Text:lower()
+                    if string.find(txt, "monitor") or string.find(txt, "trace") or
+                       string.find(txt, "capture") or string.find(txt, "inspect") then
+                        hasDetailPanel = true
+                    end
+                end
+            end
+            
+            return hasLogList and hasDetailPanel
+        end,
+        
+        hasSpyName = function(obj)
+            if not obj:IsA("ScreenGui") or IsRobloxGUI(obj) then return false end
+            local name = obj.Name:lower()
+            local blacklist = {"remotespy", "simplespy", "hydroxide", "turtlespy", "darkdex", "spy", "logger", "monitor", "debugger", "tracer", "remotemonitor", "eventlogger", "funclogger"}
+            for _, badName in pairs(blacklist) do
+                if string.find(name, badName) then return true end
+            end
+            return false
+        end
+    }
+    
+    -- Kontrol fonksiyonu
+    local function IsRemoteLogger(obj)
+        if obj.Name == "OxireunUI" then
+            return false
+        end
+        
+        return RemoteLoggerSignatures.hasRemoteMonitoring(obj) or 
+               RemoteLoggerSignatures.hasSpyFeatures(obj) or
+               RemoteLoggerSignatures.hasSpyName(obj)
+    end
+    
+    -- İlk tarama (Sadece remote logger'lar)
+    for _, v in pairs(CoreGui:GetChildren()) do 
+        if IsRemoteLogger(v) then
+            pcall(function() v:Destroy() end)
+            if not table.find(Window.DetectedGUIs, v.Name) then
+                table.insert(Window.DetectedGUIs, v.Name)
+                OxireunUI:SendNotification("🛡️ Nope Nope", "Remote Logger Blocked!", 2)
+            end
+        end
+    end
+    
+    for _, v in pairs(PlayerGui:GetChildren()) do 
+        if IsRemoteLogger(v) then
+            pcall(function() v:Destroy() end)
+            if not table.find(Window.DetectedGUIs, v.Name) then
+                table.insert(Window.DetectedGUIs, v.Name)
+                OxireunUI:SendNotification("🛡️ Nope Nope", "Remote Logger Blocked!", 2)
+            end
+        end
+    end
+
+    -- Sürekli monitorlama (Yeni GUI'ler eklendi)
+    local c1 = CoreGui.ChildAdded:Connect(function(child)
+        task.wait(0.1)
+        if IsRemoteLogger(child) then
+            pcall(function() child:Destroy() end)
+            if not table.find(Window.DetectedGUIs, child.Name) then
+                table.insert(Window.DetectedGUIs, child.Name)
+                OxireunUI:SendNotification("🛡️ Nope Nope", "Remote Logger Blocked!", 2)
             end
         end
     end)
+    
+    local c2 = PlayerGui.ChildAdded:Connect(function(child)
+        task.wait(0.1)
+        if IsRemoteLogger(child) then
+            pcall(function() child:Destroy() end)
+            if not table.find(Window.DetectedGUIs, child.Name) then
+                table.insert(Window.DetectedGUIs, child.Name)
+                OxireunUI:SendNotification("🛡️ Nope Nope", "Remote Logger Blocked!", 2)
+            end
+        end
+    end)
+    
+    table.insert(Window.ActiveConnections, c1)
+    table.insert(Window.ActiveConnections, c2)
     
     ScreenGui.Parent = game:GetService("CoreGui") or game.Players.LocalPlayer:WaitForChild("PlayerGui")  
     table.insert(self.Windows, Window)  

@@ -1,5 +1,5 @@
--- Oxireun UI Library - Complete & Optimized Version
--- Sadece Remote Logger Detection - Zero Game Interference
+-- Oxireun UI Library - Slow RGB Border, Purple Theme
+-- Kompakt versiyon - Remote Logger Detection (Normal GUIs Protected)
 
 local OxireunUI = {}
 OxireunUI.__index = OxireunUI
@@ -24,7 +24,7 @@ local Colors = {
     CloseButton = Color3.fromRGB(180, 60, 60)
 }
 
--- RGB renkleri
+-- RGB renkleri (YAVAŞ animasyon için)
 local RGBColors = {
     Color3.fromRGB(180, 50, 220),
     Color3.fromRGB(150, 50, 200),
@@ -43,12 +43,13 @@ local Fonts = {
     Bold = Enum.Font.GothamBold
 }
 
--- UI BOYUTLARI
+-- KOMPAKT UI BOYUTLARI
 local UI_SIZE = {
     Width = 260,
     Height = 280
 }
 
+-- Element boyutları
 local ELEMENT_SIZES = {
     TitleBar = 30,
     TabHeight = 25,
@@ -62,53 +63,43 @@ local ELEMENT_SIZES = {
 
 -- NOTIFICATION SİSTEMİ
 function OxireunUI:SendNotification(title, text, duration)
-    pcall(function()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = title or "Oxireun UI";
-            Text = text or "Notification";
-            Duration = duration or 3;
-        })
-    end)
+    game.StarterGui:SetCore("SendNotification", {
+        Title = title or "Oxireun UI";
+        Text = text or "Notification";
+        Duration = duration or 3;
+    })
 end
 
--- Ana Library
+-- Ana Library fonksiyonu
 function OxireunUI.new()
     local self = setmetatable({}, OxireunUI)
     self.Windows = {}
-    self.SecurityConnections = {}
-    self.DetectedSpies = {}
     return self
 end
 
 -- Yeni pencere oluşturma
 function OxireunUI:NewWindow(title)
-    -- Eski UI'ı temizle
-    pcall(function()
-        if game.CoreGui:FindFirstChild("OxireunUI") then
-            game.CoreGui:FindFirstChild("OxireunUI"):Destroy()
-        end
-    end)
+    -- Önce eski UI'ı temizle
+    if game.CoreGui:FindFirstChild("OxireunUI") then
+        game.CoreGui:FindFirstChild("OxireunUI"):Destroy()
+    end
 
-    pcall(function()
-        if game.Players.LocalPlayer.PlayerGui:FindFirstChild("OxireunUI") then  
-            game.Players.LocalPlayer.PlayerGui:FindFirstChild("OxireunUI"):Destroy()  
-        end  
-    end)
+    if game.Players.LocalPlayer.PlayerGui:FindFirstChild("OxireunUI") then  
+        game.Players.LocalPlayer.PlayerGui:FindFirstChild("OxireunUI"):Destroy()  
+    end  
   
     local Window = {}  
     Window.Title = title or "Oxireun UI"  
     Window.Sections = {}  
     Window.CurrentSection = nil
     Window.ActiveConnections = {} 
-    Window.AllToggles = {}
-    Window.IsOxireunUI = true
+    Window.AllToggles = {} 
   
     -- Ana ekran  
     local ScreenGui = Instance.new("ScreenGui")  
     ScreenGui.Name = "OxireunUI"  
     ScreenGui.ResetOnSpawn = false  
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.DisplayOrder = 1000
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling  
   
     -- Ana pencere  
     local MainFrame = Instance.new("Frame")  
@@ -125,7 +116,7 @@ function OxireunUI:NewWindow(title)
     corner.CornerRadius = UDim.new(0, 8)  
     corner.Parent = MainFrame  
   
-    -- RGB BORDER  
+    -- YAVAŞ ANİMASYONLU RGB BORDER  
     local rgbBorder = Instance.new("UIStroke")  
     rgbBorder.Name = "RGBBorder"  
     rgbBorder.Color = RGBColors[1]  
@@ -133,11 +124,10 @@ function OxireunUI:NewWindow(title)
     rgbBorder.Transparency = 0  
     rgbBorder.Parent = MainFrame  
   
-    -- RGB animasyonu  
+    -- YAVAŞ RGB animasyonu  
     local colorIndex = 1  
     local rgbConnection  
     rgbConnection = game:GetService("RunService").Heartbeat:Connect(function()  
-        if not ScreenGui.Parent then return end
         colorIndex = colorIndex + 0.008  
         if colorIndex > #RGBColors then  
             colorIndex = 1  
@@ -252,7 +242,6 @@ function OxireunUI:NewWindow(title)
   
     -- EFEKTLER  
     local function CreateClickEffect(button)  
-        if not button or not button.Parent then return end
         local effect = Instance.new("Frame")  
         effect.Name = "ClickEffect"  
         effect.Size = UDim2.new(1, 0, 1, 0)  
@@ -266,50 +255,49 @@ function OxireunUI:NewWindow(title)
         effectCorner.Parent = effect  
         
         game:GetService("TweenService"):Create(effect, TweenInfo.new(0.3), { BackgroundTransparency = 1 }):Play()  
-        task.delay(0.3, function() 
-            if effect and effect.Parent then
-                effect:Destroy() 
-            end
-        end)  
+        delay(0.3, function() if effect and effect.Parent then effect:Destroy() end end)  
     end  
   
     local function SetupButtonHover(button, isControlButton)  
-        if not button then return end
         if isControlButton then  
             button.MouseEnter:Connect(function()  
-                if not button.Parent then return end
-                if button.Name == "Close" then  
-                    button.BackgroundColor3 = Color3.fromRGB(200, 80, 80)  
-                else  
-                    button.BackgroundColor3 = Color3.fromRGB(90, 70, 130)  
-                end  
+                if button and button.Parent then
+                    if button.Name == "Close" then  
+                        button.BackgroundColor3 = Color3.fromRGB(200, 80, 80)  
+                    else  
+                        button.BackgroundColor3 = Color3.fromRGB(90, 70, 130)  
+                    end
+                end
             end)  
             button.MouseLeave:Connect(function()  
-                if not button.Parent then return end
-                if button.Name == "Close" then  
-                    button.BackgroundColor3 = Colors.CloseButton  
-                else  
-                    button.BackgroundColor3 = Colors.ControlButton  
-                end  
+                if button and button.Parent then
+                    if button.Name == "Close" then  
+                        button.BackgroundColor3 = Colors.CloseButton  
+                    else  
+                        button.BackgroundColor3 = Colors.ControlButton  
+                    end
+                end
             end)  
             return  
         end  
         
         button.MouseEnter:Connect(function()  
-            if not button.Parent then return end
-            game:GetService("TweenService"):Create(button, TweenInfo.new(0.2), { BackgroundColor3 = Colors.Border }):Play()  
+            if button and button.Parent then
+                game:GetService("TweenService"):Create(button, TweenInfo.new(0.2), { BackgroundColor3 = Colors.Border }):Play()
+            end
         end)  
         
         button.MouseLeave:Connect(function()  
-            if not button.Parent then return end
-            game:GetService("TweenService"):Create(button, TweenInfo.new(0.2), { BackgroundColor3 = Colors.Button }):Play()  
+            if button and button.Parent then
+                game:GetService("TweenService"):Create(button, TweenInfo.new(0.2), { BackgroundColor3 = Colors.Button }):Play()
+            end
         end)  
     end  
   
     SetupButtonHover(CloseButton, true)  
     SetupButtonHover(MinimizeButton, true)  
   
-    -- DRAGGABLE (ZIndexBehavior ile düzeltildi)
+    -- DRAGGABLE  
     local UserInputService = game:GetService("UserInputService")  
     local RunService = game:GetService("RunService")  
     local dragging = false  
@@ -317,7 +305,8 @@ function OxireunUI:NewWindow(title)
     local activeDropdowns = {}
     
     local function update(input)  
-        if not dragging or not MainFrame.Parent then return end  
+        if not dragging then return end  
+        if not MainFrame or not MainFrame.Parent then return end
         local delta = input.Position - dragStart  
         MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)  
         
@@ -353,18 +342,16 @@ function OxireunUI:NewWindow(title)
     end)  
   
     -- =========================================================================
-    -- TAM TEMİZLİK
+    -- TAM TEMİZLİK FONKSİYONU
     -- =========================================================================
     local function FullCleanup()
         for _, conn in pairs(Window.ActiveConnections) do
-            if conn then 
-                pcall(function() conn:Disconnect() end)
-            end
+            if conn then pcall(function() conn:Disconnect() end) end
         end
         Window.ActiveConnections = {}
 
         for _, toggleData in pairs(Window.AllToggles) do
-            if toggleData.State == true then
+            if toggleData and toggleData.State == true then
                 toggleData.State = false
                 if toggleData.Callback then
                     task.spawn(function()
@@ -376,21 +363,17 @@ function OxireunUI:NewWindow(title)
         Window.AllToggles = {}
         
         for dropdownFrame, _ in pairs(activeDropdowns) do
-            if dropdownFrame then 
-                pcall(function() dropdownFrame:Destroy() end)
-            end
+            if dropdownFrame then pcall(function() dropdownFrame:Destroy() end) end
         end
-        activeDropdowns = {}
     end
 
-    -- Close Button
+    -- Close Button Logic
     CloseButton.MouseButton1Click:Connect(function()  
-        if not ScreenGui.Parent then return end
         CreateClickEffect(CloseButton)  
         ScreenGui:Destroy()
     end)  
     
-    -- UI Silindiğinde Temizlik
+    -- UI Silindiğinde Temizlik Yap
     ScreenGui.AncestryChanged:Connect(function()
         if not ScreenGui.Parent then
             FullCleanup()
@@ -399,7 +382,6 @@ function OxireunUI:NewWindow(title)
   
     local minimized = false  
     MinimizeButton.MouseButton1Click:Connect(function()  
-        if not ScreenGui.Parent then return end
         CreateClickEffect(MinimizeButton)  
         if not minimized then  
             MainFrame.Size = UDim2.new(0, UI_SIZE.Width, 0, ELEMENT_SIZES.TitleBar)  
@@ -407,10 +389,7 @@ function OxireunUI:NewWindow(title)
             ContentArea.Visible = false  
             minimized = true  
             for dropdownFrame, _ in pairs(activeDropdowns) do  
-                if dropdownFrame then 
-                    pcall(function() dropdownFrame:Destroy() end)
-                    activeDropdowns[dropdownFrame] = nil 
-                end  
+                if dropdownFrame then pcall(function() dropdownFrame:Destroy() end) activeDropdowns[dropdownFrame] = nil end  
             end  
         else  
             MainFrame.Size = UDim2.new(0, UI_SIZE.Width, 0, UI_SIZE.Height)  
@@ -471,7 +450,7 @@ function OxireunUI:NewWindow(title)
         sectionPadding.Parent = SectionFrame  
         
         sectionList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()  
-            if SectionFrame.Parent then
+            if SectionFrame and SectionFrame.Parent then
                 SectionFrame.CanvasSize = UDim2.new(0, 0, 0, sectionList.AbsoluteContentSize.Y + 12)
             end
         end)  
@@ -483,7 +462,6 @@ function OxireunUI:NewWindow(title)
         end  
         
         TabButton.MouseButton1Click:Connect(function()  
-            if not ScreenGui.Parent then return end
             CreateClickEffect(TabButton)  
             for _, tab in pairs(TabsContainer:GetChildren()) do  
                 if tab:IsA("TextButton") then tab.BackgroundColor3 = Colors.TabInactive end  
@@ -515,7 +493,6 @@ function OxireunUI:NewWindow(title)
             SetupButtonHover(Button, false)  
             
             Button.MouseButton1Click:Connect(function()  
-                if not Button.Parent then return end
                 CreateClickEffect(Button)  
                 if callback then callback() end  
             end)  
@@ -571,27 +548,32 @@ function OxireunUI:NewWindow(title)
             table.insert(Window.AllToggles, ToggleData)
             
             ToggleButton.MouseEnter:Connect(function()  
-                if not ToggleButton.Parent then return end
-                game:GetService("TweenService"):Create(ToggleButton, TweenInfo.new(0.2), {  
-                    BackgroundColor3 = ToggleData.State and Colors.Accent or Colors.Hover  
-                }):Play()  
+                if ToggleButton and ToggleButton.Parent then
+                    game:GetService("TweenService"):Create(ToggleButton, TweenInfo.new(0.2), {  
+                        BackgroundColor3 = ToggleData.State and Colors.Accent or Colors.Hover  
+                    }):Play()
+                end
             end)  
             
             ToggleButton.MouseLeave:Connect(function()  
-                if not ToggleButton.Parent then return end
-                game:GetService("TweenService"):Create(ToggleButton, TweenInfo.new(0.2), {  
-                    BackgroundColor3 = ToggleData.State and Colors.ToggleOn or Colors.ToggleOff  
-                }):Play()  
+                if ToggleButton and ToggleButton.Parent then
+                    game:GetService("TweenService"):Create(ToggleButton, TweenInfo.new(0.2), {  
+                        BackgroundColor3 = ToggleData.State and Colors.ToggleOn or Colors.ToggleOff  
+                    }):Play()
+                end
             end)  
             
             ToggleButton.MouseButton1Click:Connect(function()  
-                if not ToggleButton.Parent then return end
                 CreateClickEffect(ToggleButton)  
                 ToggleData.State = not ToggleData.State  
                 
                 local targetPos = ToggleData.State and 21 or 2  
-                game:GetService("TweenService"):Create(ToggleCircle, TweenInfo.new(0.2), { Position = UDim2.new(0, targetPos, 0.5, -8) }):Play()  
-                game:GetService("TweenService"):Create(ToggleButton, TweenInfo.new(0.2), { BackgroundColor3 = ToggleData.State and Colors.ToggleOn or Colors.ToggleOff }):Play()  
+                if ToggleCircle and ToggleCircle.Parent then
+                    game:GetService("TweenService"):Create(ToggleCircle, TweenInfo.new(0.2), { Position = UDim2.new(0, targetPos, 0.5, -8) }):Play()
+                end
+                if ToggleButton and ToggleButton.Parent then
+                    game:GetService("TweenService"):Create(ToggleButton, TweenInfo.new(0.2), { BackgroundColor3 = ToggleData.State and Colors.ToggleOn or Colors.ToggleOff }):Play()
+                end
                 
                 if callback then callback(ToggleData.State) end  
             end)  
@@ -708,45 +690,35 @@ function OxireunUI:NewWindow(title)
             btnCorner.Parent = DropdownButton  
             
             DropdownButton.MouseEnter:Connect(function()  
-                if not DropdownButton.Parent then return end
-                game:GetService("TweenService"):Create(DropdownButton, TweenInfo.new(0.2), { BackgroundColor3 = Colors.Border }):Play()  
+                if DropdownButton and DropdownButton.Parent then
+                    game:GetService("TweenService"):Create(DropdownButton, TweenInfo.new(0.2), { BackgroundColor3 = Colors.Border }):Play()
+                end
             end)  
             DropdownButton.MouseLeave:Connect(function()  
-                if not DropdownButton.Parent then return end
-                game:GetService("TweenService"):Create(DropdownButton, TweenInfo.new(0.2), { BackgroundColor3 = Colors.Button }):Play()  
+                if DropdownButton and DropdownButton.Parent then
+                    game:GetService("TweenService"):Create(DropdownButton, TweenInfo.new(0.2), { BackgroundColor3 = Colors.Button }):Play()
+                end
             end)  
             
             local open = false  
             local OptionsContainer  
-            local OptionsGui  
             
             local function CloseOptions()  
-                open = false
-                if OptionsGui then
-                    pcall(function() OptionsGui:Destroy() end)
-                    OptionsGui = nil
-                end
-                if OptionsContainer then 
-                    OptionsContainer = nil
-                end
+                if OptionsContainer then pcall(function() OptionsContainer:Destroy() end) OptionsContainer = nil end  
+                open = false  
                 activeDropdowns[OptionsContainer] = nil  
             end  
             
             DropdownButton.MouseButton1Click:Connect(function()  
-                if not DropdownButton.Parent then return end
                 CreateClickEffect(DropdownButton)  
-                if open then 
-                    CloseOptions() 
-                    return 
-                end  
+                if open then CloseOptions() return end  
                 
                 open = true  
-                OptionsGui = Instance.new("ScreenGui")  
-                OptionsGui.Name = "DropdownOptions"  
-                OptionsGui.ResetOnSpawn = false  
-                OptionsGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-                OptionsGui.DisplayOrder = 1001
-                OptionsGui.Parent = game.CoreGui
+                local OptionsScreenGui = Instance.new("ScreenGui")  
+                OptionsScreenGui.Name = "DropdownOptions"  
+                OptionsScreenGui.ResetOnSpawn = false  
+                OptionsScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling  
+                OptionsScreenGui.Parent = ScreenGui  
                 
                 OptionsContainer = Instance.new("Frame")  
                 OptionsContainer.Name = "OptionsContainer"  
@@ -755,7 +727,7 @@ function OxireunUI:NewWindow(title)
                 OptionsContainer.BackgroundColor3 = Colors.SectionBg  
                 OptionsContainer.BorderSizePixel = 0  
                 OptionsContainer.ZIndex = 100  
-                OptionsContainer.Parent = OptionsGui  
+                OptionsContainer.Parent = OptionsScreenGui  
                 
                 local optionsCorner = Instance.new("UICorner")  
                 optionsCorner.CornerRadius = UDim.new(0, 5)  
@@ -779,33 +751,27 @@ function OxireunUI:NewWindow(title)
                     optionCorner.CornerRadius = UDim.new(0, 3)  
                     optionCorner.Parent = OptionButton  
                     
-                    OptionButton.MouseEnter:Connect(function() 
-                        if OptionButton.Parent then
-                            OptionButton.BackgroundColor3 = Colors.Border 
-                        end
-                    end)  
-                    OptionButton.MouseLeave:Connect(function() 
-                        if OptionButton.Parent then
-                            OptionButton.BackgroundColor3 = Colors.Button 
-                        end
-                    end)  
+                    OptionButton.MouseEnter:Connect(function() if OptionButton and OptionButton.Parent then OptionButton.BackgroundColor3 = Colors.Border end end)  
+                    OptionButton.MouseLeave:Connect(function() if OptionButton and OptionButton.Parent then OptionButton.BackgroundColor3 = Colors.Button end end)  
                     
                     OptionButton.MouseButton1Click:Connect(function()  
-                        if not OptionButton.Parent then return end
                         CreateClickEffect(OptionButton)  
                         DropdownButton.Text = option  
                         if callback then callback(option) end  
                         CloseOptions()  
+                        OptionsScreenGui:Destroy()  
                     end)  
                 end  
                 activeDropdowns[OptionsContainer] = true  
                 
                 local dropdownConnection  
                 dropdownConnection = RunService.Heartbeat:Connect(function()  
-                    if OptionsContainer and OptionsContainer.Parent and open and DropdownButton.Parent then  
-                        local buttonPos = DropdownButton.AbsolutePosition  
-                        local buttonSize = DropdownButton.AbsoluteSize  
-                        OptionsContainer.Position = UDim2.new(0, buttonPos.X, 0, buttonPos.Y + buttonSize.Y + 5)  
+                    if OptionsContainer and open then  
+                         if OptionsContainer and DropdownButton then  
+                            local buttonPos = DropdownButton.AbsolutePosition  
+                            local buttonSize = DropdownButton.AbsoluteSize  
+                            OptionsContainer.Position = UDim2.new(0, buttonPos.X, 0, buttonPos.Y + buttonSize.Y + 5)  
+                        end  
                     end  
                 end)
                 table.insert(Window.ActiveConnections, dropdownConnection)
@@ -825,6 +791,7 @@ function OxireunUI:NewWindow(title)
                             mousePos.Y >= containerPos.Y and mousePos.Y <= containerPos.Y + containerSize.Y) then  
                             if dropdownConnection then dropdownConnection:Disconnect() end  
                             CloseOptions()  
+                            OptionsScreenGui:Destroy()  
                         end  
                     end  
                 end  
@@ -869,117 +836,120 @@ function OxireunUI:NewWindow(title)
     end  
   
     -- =========================================================================
-    -- REMOTE LOGGER DETECTION - ADVANCED SYSTEM
+    -- REMOTE LOGGER DETECTION SYSTEM (BUG'LAR ÇÖZÜLDÜ)
     -- =========================================================================
     local CoreGui = game:GetService("CoreGui")
     local PlayerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-    local DetectionCooldown = {}
+    local DetectedSpies = {}
     
-    local function IsRemoteLogger(obj)
-        -- Oxireun UI'ı koru
-        if obj:IsA("ScreenGui") and (obj.Name == "OxireunUI" or obj.Name == "DropdownOptions") then
+    local RemoteLoggerSignatures = {
+        hasRemoteMonitoring = function(obj)
+            if not obj:IsA("ScreenGui") then return false end
+            local labelCount = 0
+            local hasRemoteInfo = false
+            
+            for _, desc in pairs(obj:GetDescendants()) do
+                if desc:IsA("TextLabel") or desc:IsA("TextBox") then
+                    local txt = (desc.Text or ""):lower() .. (desc.Name or ""):lower()
+                    if string.find(txt, "remotefunction") or string.find(txt, "remoteevent") or
+                       string.find(txt, "arguments") or string.find(txt, "transmitted") or
+                       string.find(txt, "replicated") then
+                        hasRemoteInfo = true
+                        labelCount = labelCount + 1
+                    end
+                end
+            end
+            
+            return hasRemoteInfo and labelCount >= 2
+        end,
+        
+        hasSpyFeatures = function(obj)
+            if not obj:IsA("ScreenGui") then return false end
+            local hasLogList = false
+            local hasDetailPanel = false
+            
+            for _, child in pairs(obj:GetDescendants()) do
+                if child:IsA("Frame") or child:IsA("ScrollingFrame") then
+                    if child.Size.X.Scale > 0.3 or child.Size.Y.Scale > 0.3 then
+                        hasLogList = true
+                    end
+                end
+                if child:IsA("TextLabel") then
+                    local txt = (child.Text or ""):lower()
+                    if string.find(txt, "monitor") or string.find(txt, "trace") or
+                       string.find(txt, "capture") or string.find(txt, "inspect") then
+                        hasDetailPanel = true
+                    end
+                end
+            end
+            
+            return hasLogList and hasDetailPanel
+        end,
+        
+        hasSpyName = function(obj)
+            if not obj:IsA("ScreenGui") then return false end
+            local name = (obj.Name or ""):lower()
+            local blacklist = {"remotespy", "simplespy", "hydroxide", "turtlespy", "darkdex", "spy", "logger", "monitor", "debugger", "tracer"}
+            for _, badName in pairs(blacklist) do
+                if string.find(name, badName) then return true end
+            end
             return false
         end
+    }
+    
+    local function IsRemoteLogger(obj)
+        if not obj or not obj:IsA("ScreenGui") then return false end
+        if obj.Name == "OxireunUI" then return false end
         
-        if not obj:IsA("ScreenGui") then return false end
-        
-        -- Cooldown kontrolü (aynı GUI'yi tekrar algılamayı önle)
-        if DetectionCooldown[obj] then return false end
-        
-        local descendantCount = 0
-        local remoteIndicators = 0
-        local spyIndicators = 0
-        
-        for _, desc in pairs(obj:GetDescendants()) do
-            descendantCount = descendantCount + 1
-            
-            -- Remote Logger Özellikleri
-            if desc:IsA("TextLabel") or desc:IsA("TextBox") then
-                local textLower = (desc.Text or ""):lower()
-                local nameLower = (desc.Name or ""):lower()
-                local combined = textLower .. " " .. nameLower
-                
-                -- Remote/Event Göstergeleri
-                if string.find(combined, "remotefunction") or 
-                   string.find(combined, "remoteevent") or
-                   string.find(combined, "fireserver") or
-                   string.find(combined, "invokeserver") or
-                   string.find(combined, "arguments") or
-                   string.find(combined, "transmitted") then
-                    remoteIndicators = remoteIndicators + 1
-                end
-                
-                -- Spy Göstergeleri
-                if string.find(combined, "spy") or 
-                   string.find(combined, "monitor") or
-                   string.find(combined, "logger") or
-                   string.find(combined, "tracer") or
-                   string.find(combined, "capture") or
-                   string.find(combined, "debugger") then
-                    spyIndicators = spyIndicators + 1
-                end
-            end
-        end
-        
-        -- Çok sayıda element + uzak göstergeleri = Remote Logger
-        if descendantCount > 20 and (remoteIndicators >= 2 or spyIndicators >= 3) then
-            DetectionCooldown[obj] = true
-            return true
-        end
-        
-        -- Spesifik Spy Aracı İsimleri
-        local name = obj.Name:lower()
-        local spyTools = {"remotespy", "simplespy", "hydroxide", "turtlespy", "darkdex", "remotedex"}
-        for _, spy in pairs(spyTools) do
-            if string.find(name, spy) then
-                DetectionCooldown[obj] = true
-                return true
-            end
-        end
-        
-        return false
+        return RemoteLoggerSignatures.hasRemoteMonitoring(obj) or 
+               RemoteLoggerSignatures.hasSpyFeatures(obj) or
+               RemoteLoggerSignatures.hasSpyName(obj)
     end
     
-    -- İlk Tarama
+    -- İlk tarama
     for _, v in pairs(CoreGui:GetChildren()) do 
         if IsRemoteLogger(v) then
             pcall(function() v:Destroy() end)
-            OxireunUI:SendNotification("🛡️ Nope Nope", "Remote Logger blocked!", 3)
+            DetectedSpies[v] = true
+            OxireunUI:SendNotification("🛡️ Security", "Nope Nope!", 3)
         end
     end
     
     for _, v in pairs(PlayerGui:GetChildren()) do 
         if IsRemoteLogger(v) then
             pcall(function() v:Destroy() end)
-            OxireunUI:SendNotification("🛡️ Nope Nope", "Remote Logger blocked!", 3)
+            DetectedSpies[v] = true
+            OxireunUI:SendNotification("🛡️ Security", "Nope Nope!", 3)
         end
     end
 
-    -- Sürekli Monitorlama
+    -- Sürekli monitorlama
     local c1 = CoreGui.ChildAdded:Connect(function(child)
-        task.wait(0.05)
-        if IsRemoteLogger(child) then
-            pcall(function() child:Destroy() end)
-            OxireunUI:SendNotification("🛡️ Nope Nope", "Remote Logger blocked!", 3)
+        if not DetectedSpies[child] then
+            task.wait(0.05)
+            if child and child.Parent and IsRemoteLogger(child) then
+                pcall(function() child:Destroy() end)
+                DetectedSpies[child] = true
+                OxireunUI:SendNotification("🛡️ Security", "Nope Nope!", 3)
+            end
         end
     end)
     
     local c2 = PlayerGui.ChildAdded:Connect(function(child)
-        task.wait(0.05)
-        if IsRemoteLogger(child) then
-            pcall(function() child:Destroy() end)
-            OxireunUI:SendNotification("🛡️ Nope Nope", "Remote Logger blocked!", 3)
+        if not DetectedSpies[child] then
+            task.wait(0.05)
+            if child and child.Parent and IsRemoteLogger(child) then
+                pcall(function() child:Destroy() end)
+                DetectedSpies[child] = true
+                OxireunUI:SendNotification("🛡️ Security", "Nope Nope!", 3)
+            end
         end
     end)
     
     table.insert(Window.ActiveConnections, c1)
     table.insert(Window.ActiveConnections, c2)
     
-    -- Parent olayına ekle
-    pcall(function()
-        ScreenGui.Parent = game:GetService("CoreGui")
-    end)
-    
+    ScreenGui.Parent = game:GetService("CoreGui") or game.Players.LocalPlayer:WaitForChild("PlayerGui")  
     table.insert(self.Windows, Window)  
     return Window
 end

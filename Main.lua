@@ -1,5 +1,16 @@
--- Oxireun UI Library - Slow RGB Border, Purple Theme
--- Kompakt versiyon - Remote Logger Detection (Normal GUIs Protected)
+-- Başlangıç İşlemleri (İsteğin üzerine eklendi)
+pcall(function()
+    setclipboard("https://discord.gg/M2Xq55wC8Z")
+end)
+
+game.StarterGui:SetCore("SendNotification", {
+    Title = "Oxireun UI";
+    Text = "Discord invite copied! Script Loading...";
+    Duration = 3;
+})
+
+-- Oxireun UI Library - Fixed Version
+-- "nope nope" Notification & Roblox CoreGui Protection Added
 
 local OxireunUI = {}
 OxireunUI.__index = OxireunUI
@@ -24,7 +35,7 @@ local Colors = {
     CloseButton = Color3.fromRGB(180, 60, 60)
 }
 
--- RGB renkleri (YAVAŞ animasyon için)
+-- RGB renkleri
 local RGBColors = {
     Color3.fromRGB(180, 50, 220),
     Color3.fromRGB(150, 50, 200),
@@ -63,11 +74,13 @@ local ELEMENT_SIZES = {
 
 -- NOTIFICATION SİSTEMİ
 function OxireunUI:SendNotification(title, text, duration)
-    game.StarterGui:SetCore("SendNotification", {
-        Title = title or "Oxireun UI";
-        Text = text or "Notification";
-        Duration = duration or 3;
-    })
+    pcall(function()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = title or "Oxireun Security";
+            Text = text or "Notification";
+            Duration = duration or 3;
+        })
+    end)
 end
 
 -- Ana Library fonksiyonu
@@ -100,7 +113,9 @@ function OxireunUI:NewWindow(title)
     local ScreenGui = Instance.new("ScreenGui")  
     ScreenGui.Name = "OxireunUI"  
     ScreenGui.ResetOnSpawn = false  
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling  
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    -- IgnoreGuiInset false yaparak üst barın bozulmasını engelliyoruz
+    ScreenGui.IgnoreGuiInset = false
   
     -- Ana pencere  
     local MainFrame = Instance.new("Frame")  
@@ -814,14 +829,14 @@ function OxireunUI:NewWindow(title)
     end  
   
     -- =========================================================================
-    -- REMOTE LOGGER DETECTION SYSTEM (GÜVENLI VE TEK KONTROL)
+    -- REMOTE LOGGER DETECTION SYSTEM (ROBLOX BUTONLARI KORUMALI)
     -- =========================================================================
     local CoreGui = game:GetService("CoreGui")
     local PlayerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
     
     -- Remote Logger aracını tanıyan sistem
     local RemoteLoggerSignatures = {
-        -- Çok sayıda RemoteFunction/RemoteEvent
+        -- Çok sayıda RemoteFunction/RemoteEvent (Generic)
         hasRemoteMonitoring = function(obj)
             if not obj:IsA("ScreenGui") then return false end
             local labelCount = 0
@@ -838,7 +853,6 @@ function OxireunUI:NewWindow(title)
                     end
                 end
             end
-            
             return hasRemoteInfo and labelCount >= 2
         end,
         
@@ -862,7 +876,6 @@ function OxireunUI:NewWindow(title)
                     end
                 end
             end
-            
             return hasLogList and hasDetailPanel
         end,
         
@@ -878,47 +891,51 @@ function OxireunUI:NewWindow(title)
         end
     }
     
+    -- GÜVENLİ LİSTE (Roblox Butonlarının Buglanmaması İçin)
+    local SafeGUIs = {
+        "RobloxGui", "CoreScripts", "TopBar", "Chat", "RobloxPromptGui", 
+        "PurchasePrompt", "HeadsetMenu", "ExperienceChat", "BubbleChat", 
+        "RobloxLoadingGui", "PlayerList", "OxireunUI", "DropdownOptions"
+    }
+
     -- Kontrol fonksiyonu
     local function IsRemoteLogger(obj)
-        -- Oxireun UI'ı koru
-        if obj:IsA("ScreenGui") and obj.Name == "OxireunUI" then
-            return false
-        end
+        -- Güvenli GUI'leri atla
+        if table.find(SafeGUIs, obj.Name) then return false end
+        if obj.Name == "OxireunUI" then return false end
         
         return RemoteLoggerSignatures.hasRemoteMonitoring(obj) or 
                RemoteLoggerSignatures.hasSpyFeatures(obj) or
                RemoteLoggerSignatures.hasSpyName(obj)
     end
     
-    -- İlk tarama (Sadece remote logger'lar)
-    for _, v in pairs(CoreGui:GetChildren()) do 
-        if IsRemoteLogger(v) then
-            pcall(function() v:Destroy() end)
-            OxireunUI:SendNotification("🛡️ Security", "Remote Logger blocked!", 2)
-        end
-    end
-    
-    for _, v in pairs(PlayerGui:GetChildren()) do 
-        if IsRemoteLogger(v) then
-            pcall(function() v:Destroy() end)
-            OxireunUI:SendNotification("🛡️ Security", "Remote Logger blocked!", 2)
+    -- İlk tarama
+    local function ScanAndDestroy(folder)
+        for _, v in pairs(folder:GetChildren()) do 
+            if IsRemoteLogger(v) then
+                pcall(function() v:Destroy() end)
+                OxireunUI:SendNotification("Oxireun Protected", "nope nope", 2)
+            end
         end
     end
 
-    -- Sürekli monitorlama (Yeni GUI'ler eklendi)
+    ScanAndDestroy(CoreGui)
+    ScanAndDestroy(PlayerGui)
+
+    -- Sürekli monitorlama
     local c1 = CoreGui.ChildAdded:Connect(function(child)
-        task.wait(0.1) -- Kurulumun bitmesi için bekle
+        task.wait(0.2)
         if IsRemoteLogger(child) then
             pcall(function() child:Destroy() end)
-            OxireunUI:SendNotification("🛡️ Security", "Remote Logger blocked!", 2)
+            OxireunUI:SendNotification("Oxireun Protected", "nope nope", 2)
         end
     end)
     
     local c2 = PlayerGui.ChildAdded:Connect(function(child)
-        task.wait(0.1)
+        task.wait(0.2)
         if IsRemoteLogger(child) then
             pcall(function() child:Destroy() end)
-            OxireunUI:SendNotification("🛡️ Security", "Remote Logger blocked!", 2)
+            OxireunUI:SendNotification("Oxireun Protected", "nope nope", 2)
         end
     end)
     
